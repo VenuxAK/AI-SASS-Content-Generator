@@ -7,6 +7,7 @@ use Database\Factories\UserFactory;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Attributes\Hidden;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use Illuminate\Support\Carbon;
@@ -45,6 +46,40 @@ class User extends Authenticatable implements PasskeyUser
             'email_verified_at' => 'datetime',
             'password' => 'hashed',
             'two_factor_confirmed_at' => 'datetime',
+            'is_admin' => 'boolean',
+            'credit_balance' => 'integer',
         ];
+    }
+
+    /**
+     * @return HasMany<UserTone, $this>
+     */
+    public function tones(): HasMany
+    {
+        return $this->hasMany(UserTone::class);
+    }
+
+    /**
+     * @return HasMany<Generation, $this>
+     */
+    public function generations(): HasMany
+    {
+        return $this->hasMany(Generation::class);
+    }
+
+    /**
+     * @return HasMany<StripePayment, $this>
+     */
+    public function stripePayments(): HasMany
+    {
+        return $this->hasMany(StripePayment::class);
+    }
+
+    /**
+     * @return HasMany<CreditTransaction, $this>
+     */
+    public function creditTransactions(): HasMany
+    {
+        return $this->hasMany(CreditTransaction::class);
     }
 }
