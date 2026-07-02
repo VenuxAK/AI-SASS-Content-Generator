@@ -6,6 +6,13 @@ import { index as historyIndex, show as historyShow } from '@/routes/history';
 import { index as billingIndex } from '@/routes/billing';
 import { store as generateStore } from '@/routes/generate';
 import { Button } from '@/components/ui/button';
+import {
+    Select,
+    SelectContent,
+    SelectItem,
+    SelectTrigger,
+    SelectValue,
+} from '@/components/ui/select';
 
 interface Tone {
     id: number;
@@ -115,18 +122,18 @@ export default function Dashboard({
                                     <label htmlFor="content_type" className="block text-sm font-semibold text-neutral-700 dark:text-neutral-300 mb-2">
                                         Content Type
                                     </label>
-                                    <select
-                                        id="content_type"
-                                        value={data.content_type}
-                                        onChange={(e) => setData('content_type', e.target.value)}
-                                        className="w-full rounded-xl border border-neutral-200 dark:border-neutral-800 bg-white dark:bg-neutral-950 px-4 py-3 text-sm text-neutral-900 dark:text-neutral-100 focus:outline-none focus:ring-2 focus:ring-indigo-500"
-                                    >
-                                        {contentTypes.map((type) => (
-                                            <option key={type.value} value={type.value}>
-                                                {type.label}
-                                            </option>
-                                        ))}
-                                    </select>
+                                    <Select value={data.content_type} onValueChange={(val) => setData('content_type', val)}>
+                                        <SelectTrigger className="w-full rounded-xl border border-neutral-200 dark:border-neutral-800 bg-white dark:bg-neutral-950 px-4 py-3 h-11 text-neutral-900 dark:text-neutral-100 focus:ring-2 focus:ring-indigo-500 cursor-pointer shadow-xs hover:border-neutral-350 dark:hover:border-neutral-700">
+                                            <SelectValue placeholder="Select content type" />
+                                        </SelectTrigger>
+                                        <SelectContent className="bg-white dark:bg-neutral-950 border border-neutral-200 dark:border-neutral-800">
+                                            {contentTypes.map((type) => (
+                                                <SelectItem key={type.value} value={type.value}>
+                                                    {type.label}
+                                                </SelectItem>
+                                            ))}
+                                        </SelectContent>
+                                    </Select>
                                     {errors.content_type && <span className="text-xs text-rose-500 mt-1 block">{errors.content_type}</span>}
                                 </div>
 
@@ -134,18 +141,18 @@ export default function Dashboard({
                                     <label htmlFor="output_language" className="block text-sm font-semibold text-neutral-700 dark:text-neutral-300 mb-2">
                                         Language
                                     </label>
-                                    <select
-                                        id="output_language"
-                                        value={data.output_language}
-                                        onChange={(e) => setData('output_language', e.target.value)}
-                                        className="w-full rounded-xl border border-neutral-200 dark:border-neutral-800 bg-white dark:bg-neutral-950 px-4 py-3 text-sm text-neutral-900 dark:text-neutral-100 focus:outline-none focus:ring-2 focus:ring-indigo-500"
-                                    >
-                                        {outputLanguages.map((lang) => (
-                                            <option key={lang.value} value={lang.value}>
-                                                {lang.label}
-                                            </option>
-                                        ))}
-                                    </select>
+                                    <Select value={data.output_language} onValueChange={(val) => setData('output_language', val)}>
+                                        <SelectTrigger className="w-full rounded-xl border border-neutral-200 dark:border-neutral-800 bg-white dark:bg-neutral-950 px-4 py-3 h-11 text-neutral-900 dark:text-neutral-100 focus:ring-2 focus:ring-indigo-500 cursor-pointer shadow-xs hover:border-neutral-350 dark:hover:border-neutral-700">
+                                            <SelectValue placeholder="Select language" />
+                                        </SelectTrigger>
+                                        <SelectContent className="bg-white dark:bg-neutral-950 border border-neutral-200 dark:border-neutral-800">
+                                            {outputLanguages.map((lang) => (
+                                                <SelectItem key={lang.value} value={lang.value}>
+                                                    {lang.label}
+                                                </SelectItem>
+                                            ))}
+                                        </SelectContent>
+                                    </Select>
                                     {errors.output_language && <span className="text-xs text-rose-500 mt-1 block">{errors.output_language}</span>}
                                 </div>
                             </div>
@@ -160,19 +167,19 @@ export default function Dashboard({
                                     </Link>
                                 </div>
                                 {tones.length > 0 ? (
-                                    <select
-                                        id="tone_id"
-                                        value={data.tone_id}
-                                        onChange={(e) => setData('tone_id', e.target.value)}
-                                        className="w-full rounded-xl border border-neutral-200 dark:border-neutral-800 bg-white dark:bg-neutral-950 px-4 py-3 text-sm text-neutral-900 dark:text-neutral-100 focus:outline-none focus:ring-2 focus:ring-indigo-500"
-                                    >
-                                        <option value="">None (Standard Default)</option>
-                                        {tones.map((t) => (
-                                            <option key={t.id} value={t.id}>
-                                                {t.name}
-                                            </option>
-                                        ))}
-                                    </select>
+                                    <Select value={data.tone_id ? String(data.tone_id) : 'none'} onValueChange={(val) => setData('tone_id', val === 'none' ? '' : val)}>
+                                        <SelectTrigger className="w-full rounded-xl border border-neutral-200 dark:border-neutral-800 bg-white dark:bg-neutral-950 px-4 py-3 h-11 text-neutral-900 dark:text-neutral-100 focus:ring-2 focus:ring-indigo-500 cursor-pointer shadow-xs hover:border-neutral-350 dark:hover:border-neutral-700">
+                                            <SelectValue placeholder="Select tone" />
+                                        </SelectTrigger>
+                                        <SelectContent className="bg-white dark:bg-neutral-950 border border-neutral-200 dark:border-neutral-800">
+                                            <SelectItem value="none">None (Standard Default)</SelectItem>
+                                            {tones.map((t) => (
+                                                <SelectItem key={t.id} value={String(t.id)}>
+                                                    {t.name}
+                                                </SelectItem>
+                                            ))}
+                                        </SelectContent>
+                                    </Select>
                                 ) : (
                                     <div className="p-3 bg-neutral-50 dark:bg-neutral-950 rounded-xl text-xs text-neutral-500 dark:text-neutral-400 border border-neutral-100 dark:border-neutral-900 flex justify-between items-center">
                                         <span>No custom tones defined. Standard tone will be used.</span>

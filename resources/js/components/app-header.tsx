@@ -1,8 +1,9 @@
 import { Link, usePage } from '@inertiajs/react';
-import { BookOpen, Folder, LayoutGrid, Menu, Search } from 'lucide-react';
+import { BookOpen, Folder, LayoutGrid, Menu, Search, Sun, Moon } from 'lucide-react';
 import AppLogo from '@/components/app-logo';
 import AppLogoIcon from '@/components/app-logo-icon';
 import { Breadcrumbs } from '@/components/breadcrumbs';
+import { useAppearance } from '@/hooks/use-appearance';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
 import {
@@ -68,6 +69,11 @@ export function AppHeader({ breadcrumbs = [] }: Props) {
     const { auth } = page.props;
     const getInitials = useInitials();
     const { isCurrentUrl, whenCurrentUrl } = useCurrentUrl();
+    const { appearance, resolvedAppearance, updateAppearance } = useAppearance();
+
+    const toggleTheme = () => {
+        updateAppearance(appearance === 'dark' ? 'light' : 'dark');
+    };
 
     return (
         <>
@@ -139,7 +145,14 @@ export function AppHeader({ breadcrumbs = [] }: Props) {
                         prefetch
                         className="flex items-center space-x-2"
                     >
-                        <AppLogo />
+                        <img 
+                            src={`/images/logo/icon-only-${resolvedAppearance}.png`} 
+                            alt="Nexus AI Icon" 
+                            className="size-6 object-contain" 
+                        />
+                        <span className="font-extrabold text-sm tracking-tight text-neutral-900 dark:text-neutral-50 ml-1">
+                            Nexus AI
+                        </span>
                     </Link>
 
                     {/* Desktop Navigation */}
@@ -210,6 +223,15 @@ export function AppHeader({ breadcrumbs = [] }: Props) {
                                 ))}
                             </div>
                         </div>
+                        <Button
+                            variant="ghost"
+                            size="icon"
+                            onClick={toggleTheme}
+                            className="h-9 w-9 rounded-md text-neutral-500 dark:text-neutral-450 hover:bg-neutral-100 dark:hover:bg-neutral-800 mr-2 cursor-pointer"
+                            title={appearance === 'dark' ? 'Switch to Light Mode' : 'Switch to Dark Mode'}
+                        >
+                            {appearance === 'dark' ? <Sun className="size-5" /> : <Moon className="size-5" />}
+                        </Button>
                         <DropdownMenu>
                             <DropdownMenuTrigger asChild>
                                 <Button

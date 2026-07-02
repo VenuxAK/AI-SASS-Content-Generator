@@ -50,7 +50,7 @@ export default function HistoryShow({ generation, autostream }: ShowProps) {
         if (autostream && status === 'pending') {
             const streamUrl = generateStream.url({ generation: generation.id });
             const source = new EventSource(streamUrl);
-            
+
             setStatus('streaming');
 
             source.onmessage = (event) => {
@@ -128,11 +128,11 @@ export default function HistoryShow({ generation, autostream }: ShowProps) {
         <>
             <Head title="Content Generation Detail" />
             <div className="flex h-full flex-1 flex-col gap-6 p-6 max-w-7xl mx-auto w-full">
-                
+
                 {/* Header Section */}
                 <div className="flex justify-between items-center border-b border-neutral-100 dark:border-neutral-800 pb-5">
                     <div>
-                        <Link 
+                        <Link
                             href={historyIndex.url()}
                             className="text-xs font-bold text-neutral-500 hover:text-neutral-800 flex items-center gap-1 mb-2"
                         >
@@ -146,20 +146,20 @@ export default function HistoryShow({ generation, autostream }: ShowProps) {
                             Generated on {new Date(generation.created_at).toLocaleString()}
                         </p>
                     </div>
-                    
+
                     <div className="flex items-center gap-2">
                         {status === 'completed' && (
                             <>
-                                <Button 
-                                    variant="outline" 
+                                <Button
+                                    variant="outline"
                                     onClick={handleCopy}
                                     className="rounded-xl border border-neutral-200 dark:border-neutral-800 h-10 flex items-center gap-1.5 cursor-pointer"
                                 >
                                     {isCopied ? <Check className="size-4 text-emerald-600" /> : <Copy className="size-4" />}
-                                    {isCopied ? 'Copied' : 'Copy Code'}
+                                    {isCopied ? 'Copied' : 'Copy Content'}
                                 </Button>
-                                <Button 
-                                    variant="outline" 
+                                <Button
+                                    variant="outline"
                                     onClick={() => {
                                         setIsEditing(!isEditing);
                                         editForm.setData('edited_content', activeText || '');
@@ -171,8 +171,8 @@ export default function HistoryShow({ generation, autostream }: ShowProps) {
                                 </Button>
                             </>
                         )}
-                        <Button 
-                            variant="outline" 
+                        <Button
+                            variant="outline"
                             onClick={handleDelete}
                             className="rounded-xl border border-rose-100 hover:bg-rose-50 text-rose-600 dark:border-rose-950 dark:hover:bg-rose-950/20 dark:text-rose-400 h-10 flex items-center gap-1.5 cursor-pointer"
                         >
@@ -211,7 +211,7 @@ export default function HistoryShow({ generation, autostream }: ShowProps) {
                 </div>
 
                 <div className="grid gap-6 lg:grid-cols-3">
-                    
+
                     {/* Primary Text Content Viewer / Editor */}
                     <div className="lg:col-span-2 space-y-6">
                         {status === 'failed' && (
@@ -250,16 +250,16 @@ export default function HistoryShow({ generation, autostream }: ShowProps) {
                                             required
                                         />
                                         <div className="flex justify-end gap-3 pt-2">
-                                            <Button 
-                                                type="button" 
-                                                variant="outline" 
+                                            <Button
+                                                type="button"
+                                                variant="outline"
                                                 onClick={() => setIsEditing(false)}
                                                 className="rounded-xl border border-neutral-200 dark:border-neutral-800 cursor-pointer"
                                             >
                                                 Cancel
                                             </Button>
-                                            <Button 
-                                                type="submit" 
+                                            <Button
+                                                type="submit"
                                                 disabled={editForm.processing}
                                                 className="bg-indigo-600 hover:bg-indigo-500 text-white rounded-xl font-bold cursor-pointer"
                                             >
