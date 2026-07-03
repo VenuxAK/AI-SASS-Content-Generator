@@ -20,6 +20,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::get('dashboard', [DashboardController::class, 'index'])->name('dashboard');
 
     // Generations
+    Route::get('generate', [GenerationController::class, 'create'])->name('generate.create');
     Route::post('generate', [GenerationController::class, 'store'])->middleware('credits')->name('generate.store');
     Route::get('generate/{generation}/stream', [GenerationStreamController::class, 'stream'])->name('generate.stream');
 

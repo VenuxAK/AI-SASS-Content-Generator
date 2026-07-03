@@ -190,3 +190,11 @@ test('stripe webhook handles payment completion idempotently', function () {
     $user->refresh();
     expect($user->credit_balance)->toBe(55); // No double-crediting
 });
+
+test('users can view content generation form', function () {
+    $user = User::factory()->create();
+    $this->actingAs($user);
+
+    $response = $this->get(route('generate.create'));
+    $response->assertStatus(200);
+});

@@ -1,3 +1,4 @@
+import { useState, useEffect } from 'react';
 import { Link, usePage } from '@inertiajs/react';
 import { BookOpen, Folder, LayoutGrid, Menu, Search, Sun, Moon } from 'lucide-react';
 import AppLogo from '@/components/app-logo';
@@ -70,6 +71,13 @@ export function AppHeader({ breadcrumbs = [] }: Props) {
     const getInitials = useInitials();
     const { isCurrentUrl, whenCurrentUrl } = useCurrentUrl();
     const { appearance, resolvedAppearance, updateAppearance } = useAppearance();
+
+    const [mounted, setMounted] = useState(false);
+    useEffect(() => {
+        setMounted(true);
+    }, []);
+
+    const logoTheme = mounted ? resolvedAppearance : 'light';
 
     const toggleTheme = () => {
         updateAppearance(appearance === 'dark' ? 'light' : 'dark');
@@ -146,7 +154,7 @@ export function AppHeader({ breadcrumbs = [] }: Props) {
                         className="flex items-center space-x-2"
                     >
                         <img 
-                            src={`/images/logo/icon-only-${resolvedAppearance}.png`} 
+                            src={`/images/logo/icon-only-${logoTheme}.png`} 
                             alt="Nexus AI Icon" 
                             className="size-6 object-contain" 
                         />

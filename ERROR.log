@@ -1,0 +1,39 @@
+A tree hydrated but some attributes of the server rendered HTML didn't match the client properties. This won't be patched up. This can happen if a SSR-ed Client Component used:
+
+- A server/client branch `if (typeof window !== 'undefined')`.
+- Variable input such as `Date.now()` or `Math.random()` which changes each time it's called.
+- Date formatting in a user's locale which doesn't match the server.
+- External changing data without sending a snapshot of it along with the HTML.
+- Invalid HTML tag nesting.
+
+It can also happen if the client has a browser extension installed which messes with the HTML before React loaded.
+
+https://react.dev/link/hydration-mismatch
+
+  ...
+    <div className="group peer..." data-state="expanded" data-collapsible="" data-variant="inset" data-side="left" ...>
+      <div>
+      <div className="fixed inse...">
+        <div data-sidebar="sidebar" className="bg-sidebar...">
+          <SidebarHeader>
+            <div data-slot="sidebar-he..." data-sidebar="header" className="flex flex-...">
+              <SidebarMenu>
+                <ul data-slot="sidebar-menu" data-sidebar="menu" className="flex w-ful...">
+                  <SidebarMenuItem>
+                    <li data-slot="sidebar-me..." data-sidebar="menu-item" className="group/menu...">
+                      <SidebarMenuButton size="lg" asChild={true}>
+                        <Slot.Slot data-slot="sidebar-me..." data-sidebar="menu-button" data-size="lg" ...>
+                          <InertiaLink href={{url:"/dash...", ...}} prefetch={true} data-slot="sidebar-me..." ...>
+                            <a data-slot="sidebar-me..." data-sidebar="menu-button" data-size="lg" data-active={false} ...>
+                              <AppLogo>
+                                <div className="flex items...">
+                                  <img
++                                   src="/images/logo/icon-only-dark.png"
+-                                   src="/images/logo/icon-only-light.png"
+                                    alt="Nexus AI"
+                                    className="size-7 object-contain shrink-0"
+                                  >
+                                  ...
+          ...
+
+console.<computed> @ VM2988 11:66

@@ -1,18 +1,10 @@
-import { Head, Link, useForm, usePage } from '@inertiajs/react';
-import { Sparkles, MessageSquare, History, Languages, Wallet, Compass } from 'lucide-react';
-import { dashboard } from '@/routes';
+import { Head, Link } from '@inertiajs/react';
+import { Sparkles, History, Languages, Wallet, Compass, PenTool, LayoutGrid, Clock, ArrowRight } from 'lucide-react';
 import { index as tonesIndex } from '@/routes/tones';
 import { index as historyIndex, show as historyShow } from '@/routes/history';
 import { index as billingIndex } from '@/routes/billing';
-import { store as generateStore } from '@/routes/generate';
-import { Button } from '@/components/ui/button';
-import {
-    Select,
-    SelectContent,
-    SelectItem,
-    SelectTrigger,
-    SelectValue,
-} from '@/components/ui/select';
+import { create as generateCreate } from '@/routes/generate';
+import type { BreadcrumbItem } from '@/types';
 
 interface Tone {
     id: number;
@@ -46,54 +38,61 @@ interface DashboardProps {
 export default function Dashboard({
     creditBalance,
     tones,
-    contentTypes,
-    outputLanguages,
     recentGenerations,
 }: DashboardProps) {
-    const { data, setData, post, processing, errors } = useForm({
-        content_type: contentTypes[0]?.value || 'facebook_post',
-        output_language: 'en',
-        tone_id: tones[0]?.id || '',
-        user_prompt: '',
-    });
-
-    const submit = (e: React.FormEvent) => {
-        e.preventDefault();
-        post(generateStore.url());
-    };
 
     return (
         <>
-            <Head title="AI Writer Dashboard" />
+            <Head title="Dashboard Overview" />
             <div className="flex h-full flex-1 flex-col gap-6 p-6 max-w-7xl mx-auto w-full">
                 
+                {/* Header Title */}
+                <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+                    <div className="flex flex-col gap-1">
+                        <h1 className="text-2xl font-black tracking-tight text-neutral-950 dark:text-neutral-50 flex items-center gap-2">
+                            <LayoutGrid className="size-6 text-indigo-600 dark:text-indigo-400" />
+                            Dashboard Overview
+                        </h1>
+                        <p className="text-sm text-neutral-500 dark:text-neutral-400">
+                            Monitor your credits, manage your voice personas, and browse your recent copywriting history.
+                        </p>
+                    </div>
+                    <Link
+                        href={generateCreate.url()}
+                        className="inline-flex h-11 items-center justify-center gap-1.5 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white px-5 text-sm font-bold shadow-sm shadow-indigo-600/10 transition cursor-pointer"
+                    >
+                        <PenTool className="size-4" />
+                        Create New Copy
+                    </Link>
+                </div>
+
                 {/* Header Stats */}
                 <div className="grid gap-4 md:grid-cols-3">
-                    <div className="p-6 rounded-2xl border border-neutral-200 dark:border-neutral-800 bg-white dark:bg-neutral-900 shadow-sm flex items-center justify-between transition hover:shadow-md">
+                    <div className="p-6 rounded-2xl border border-neutral-200 dark:border-neutral-800 bg-white dark:bg-neutral-900 shadow-xs flex items-center justify-between transition hover:shadow-sm">
                         <div>
-                            <p className="text-sm font-medium text-neutral-500 dark:text-neutral-400">Available Credits</p>
-                            <h3 className="text-3xl font-extrabold tracking-tight mt-1 text-neutral-950 dark:text-neutral-50">{creditBalance}</h3>
+                            <p className="text-xs font-semibold text-neutral-450 uppercase tracking-wider">Available Credits</p>
+                            <h3 className="text-3xl font-black tracking-tight mt-1 text-neutral-950 dark:text-neutral-50">{creditBalance}</h3>
                         </div>
                         <div className="p-3 bg-indigo-50 dark:bg-indigo-950/50 rounded-xl text-indigo-600 dark:text-indigo-400">
                             <Wallet className="size-6" />
                         </div>
                     </div>
 
-                    <div className="p-6 rounded-2xl border border-neutral-200 dark:border-neutral-800 bg-white dark:bg-neutral-900 shadow-sm flex items-center justify-between transition hover:shadow-md">
+                    <div className="p-6 rounded-2xl border border-neutral-200 dark:border-neutral-800 bg-white dark:bg-neutral-900 shadow-xs flex items-center justify-between transition hover:shadow-sm">
                         <div>
-                            <p className="text-sm font-medium text-neutral-500 dark:text-neutral-400">Custom Tones</p>
-                            <h3 className="text-3xl font-extrabold tracking-tight mt-1 text-neutral-950 dark:text-neutral-50">{tones.length}</h3>
+                            <p className="text-xs font-semibold text-neutral-450 uppercase tracking-wider">Custom Personas</p>
+                            <h3 className="text-3xl font-black tracking-tight mt-1 text-neutral-950 dark:text-neutral-50">{tones.length}</h3>
                         </div>
                         <div className="p-3 bg-emerald-50 dark:bg-emerald-950/50 rounded-xl text-emerald-600 dark:text-emerald-400">
                             <Sparkles className="size-6" />
                         </div>
                     </div>
 
-                    <div className="p-6 rounded-2xl border border-neutral-200 dark:border-neutral-800 bg-white dark:bg-neutral-900 shadow-sm flex items-center justify-between transition hover:shadow-md">
+                    <div className="p-6 rounded-2xl border border-neutral-200 dark:border-neutral-800 bg-white dark:bg-neutral-900 shadow-xs flex items-center justify-between transition hover:shadow-sm">
                         <div>
-                            <p className="text-sm font-medium text-neutral-500 dark:text-neutral-400">Buy Credits</p>
+                            <p className="text-xs font-semibold text-neutral-450 uppercase tracking-wider">Buy Credits</p>
                             <Link href={billingIndex.url()} className="text-sm font-semibold text-indigo-600 dark:text-indigo-400 hover:underline mt-1 block">
-                                View Package Options →
+                                Top-up wallet balance →
                             </Link>
                         </div>
                         <div className="p-3 bg-purple-50 dark:bg-purple-950/50 rounded-xl text-purple-600 dark:text-purple-400">
@@ -102,175 +101,128 @@ export default function Dashboard({
                     </div>
                 </div>
 
-                <div className="grid gap-6 lg:grid-cols-3">
-                    {/* Generator Form */}
-                    <div className="lg:col-span-2 p-6 rounded-2xl border border-neutral-200 dark:border-neutral-800 bg-white dark:bg-neutral-900 shadow-sm">
-                        <div className="flex items-center gap-2 border-b border-neutral-100 dark:border-neutral-800 pb-4 mb-6">
-                            <Sparkles className="size-5 text-indigo-600" />
-                            <h2 className="text-lg font-bold text-neutral-900 dark:text-neutral-50">Generate AI Copy</h2>
+                {/* Quick Shortcuts */}
+                <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+                    <Link
+                        href={generateCreate.url()}
+                        className="p-5 rounded-2xl border border-neutral-200 dark:border-neutral-800 bg-white dark:bg-neutral-900 shadow-xs hover:border-indigo-500/40 dark:hover:border-indigo-500/40 hover:shadow-md transition flex flex-col justify-between min-h-[120px] group"
+                    >
+                        <PenTool className="size-5 text-indigo-600 dark:text-indigo-400" />
+                        <div>
+                            <h4 className="text-sm font-bold text-neutral-900 dark:text-neutral-50 group-hover:text-indigo-600 dark:group-hover:text-indigo-400 transition">Write Copy</h4>
+                            <p className="text-xs text-neutral-550 dark:text-neutral-400 mt-1">Start a new AI content stream</p>
                         </div>
+                    </Link>
 
-                        {usePage().props.errors?.credits && (
-                            <div className="mb-6 p-4 bg-rose-50 dark:bg-rose-950/30 text-rose-600 dark:text-rose-400 rounded-xl text-sm border border-rose-100 dark:border-rose-950/50">
-                                {usePage().props.errors.credits} <Link href={billingIndex.url()} className="font-bold underline ml-1">Buy credits here.</Link>
-                            </div>
-                        )}
+                    <Link
+                        href={tonesIndex.url()}
+                        className="p-5 rounded-2xl border border-neutral-200 dark:border-neutral-800 bg-white dark:bg-neutral-900 shadow-xs hover:border-emerald-500/40 dark:hover:border-emerald-500/40 hover:shadow-md transition flex flex-col justify-between min-h-[120px] group"
+                    >
+                        <Sparkles className="size-5 text-emerald-600 dark:text-emerald-400" />
+                        <div>
+                            <h4 className="text-sm font-bold text-neutral-900 dark:text-neutral-50 group-hover:text-emerald-600 dark:group-hover:text-emerald-400 transition">Tone Personas</h4>
+                            <p className="text-xs text-neutral-555 dark:text-neutral-400 mt-1">Define customized voice personals</p>
+                        </div>
+                    </Link>
 
-                        <form onSubmit={submit} className="space-y-6">
-                            <div className="grid gap-4 sm:grid-cols-2">
-                                <div>
-                                    <label htmlFor="content_type" className="block text-sm font-semibold text-neutral-700 dark:text-neutral-300 mb-2">
-                                        Content Type
-                                    </label>
-                                    <Select value={data.content_type} onValueChange={(val) => setData('content_type', val)}>
-                                        <SelectTrigger className="w-full rounded-xl border border-neutral-200 dark:border-neutral-800 bg-white dark:bg-neutral-950 px-4 py-3 h-11 text-neutral-900 dark:text-neutral-100 focus:ring-2 focus:ring-indigo-500 cursor-pointer shadow-xs hover:border-neutral-350 dark:hover:border-neutral-700">
-                                            <SelectValue placeholder="Select content type" />
-                                        </SelectTrigger>
-                                        <SelectContent className="bg-white dark:bg-neutral-950 border border-neutral-200 dark:border-neutral-800">
-                                            {contentTypes.map((type) => (
-                                                <SelectItem key={type.value} value={type.value}>
-                                                    {type.label}
-                                                </SelectItem>
-                                            ))}
-                                        </SelectContent>
-                                    </Select>
-                                    {errors.content_type && <span className="text-xs text-rose-500 mt-1 block">{errors.content_type}</span>}
-                                </div>
+                    <Link
+                        href={historyIndex.url()}
+                        className="p-5 rounded-2xl border border-neutral-200 dark:border-neutral-800 bg-white dark:bg-neutral-900 shadow-xs hover:border-amber-500/40 dark:hover:border-amber-500/40 hover:shadow-md transition flex flex-col justify-between min-h-[120px] group"
+                    >
+                        <History className="size-5 text-amber-650 dark:text-amber-450" />
+                        <div>
+                            <h4 className="text-sm font-bold text-neutral-900 dark:text-neutral-50 group-hover:text-amber-650 dark:group-hover:text-amber-450 transition">History log</h4>
+                            <p className="text-xs text-neutral-555 dark:text-neutral-400 mt-1">Browse all copywriting history</p>
+                        </div>
+                    </Link>
 
-                                <div>
-                                    <label htmlFor="output_language" className="block text-sm font-semibold text-neutral-700 dark:text-neutral-300 mb-2">
-                                        Language
-                                    </label>
-                                    <Select value={data.output_language} onValueChange={(val) => setData('output_language', val)}>
-                                        <SelectTrigger className="w-full rounded-xl border border-neutral-200 dark:border-neutral-800 bg-white dark:bg-neutral-950 px-4 py-3 h-11 text-neutral-900 dark:text-neutral-100 focus:ring-2 focus:ring-indigo-500 cursor-pointer shadow-xs hover:border-neutral-350 dark:hover:border-neutral-700">
-                                            <SelectValue placeholder="Select language" />
-                                        </SelectTrigger>
-                                        <SelectContent className="bg-white dark:bg-neutral-950 border border-neutral-200 dark:border-neutral-800">
-                                            {outputLanguages.map((lang) => (
-                                                <SelectItem key={lang.value} value={lang.value}>
-                                                    {lang.label}
-                                                </SelectItem>
-                                            ))}
-                                        </SelectContent>
-                                    </Select>
-                                    {errors.output_language && <span className="text-xs text-rose-500 mt-1 block">{errors.output_language}</span>}
-                                </div>
-                            </div>
+                    <Link
+                        href={billingIndex.url()}
+                        className="p-5 rounded-2xl border border-neutral-200 dark:border-neutral-800 bg-white dark:bg-neutral-900 shadow-xs hover:border-purple-500/40 dark:hover:border-purple-500/40 hover:shadow-md transition flex flex-col justify-between min-h-[120px] group"
+                    >
+                        <Wallet className="size-5 text-purple-650 dark:text-purple-450" />
+                        <div>
+                            <h4 className="text-sm font-bold text-neutral-900 dark:text-neutral-50 group-hover:text-purple-650 dark:group-hover:text-purple-450 transition">Billing Info</h4>
+                            <p className="text-xs text-neutral-555 dark:text-neutral-400 mt-1">Buy credits or view billing details</p>
+                        </div>
+                    </Link>
+                </div>
 
-                            <div>
-                                <div className="flex justify-between items-center mb-2">
-                                    <label htmlFor="tone_id" className="block text-sm font-semibold text-neutral-700 dark:text-neutral-300">
-                                        Writing Tone
-                                    </label>
-                                    <Link href={tonesIndex.url()} className="text-xs font-semibold text-indigo-600 dark:text-indigo-400 hover:underline">
-                                        Manage Tones →
-                                    </Link>
-                                </div>
-                                {tones.length > 0 ? (
-                                    <Select value={data.tone_id ? String(data.tone_id) : 'none'} onValueChange={(val) => setData('tone_id', val === 'none' ? '' : val)}>
-                                        <SelectTrigger className="w-full rounded-xl border border-neutral-200 dark:border-neutral-800 bg-white dark:bg-neutral-950 px-4 py-3 h-11 text-neutral-900 dark:text-neutral-100 focus:ring-2 focus:ring-indigo-500 cursor-pointer shadow-xs hover:border-neutral-350 dark:hover:border-neutral-700">
-                                            <SelectValue placeholder="Select tone" />
-                                        </SelectTrigger>
-                                        <SelectContent className="bg-white dark:bg-neutral-950 border border-neutral-200 dark:border-neutral-800">
-                                            <SelectItem value="none">None (Standard Default)</SelectItem>
-                                            {tones.map((t) => (
-                                                <SelectItem key={t.id} value={String(t.id)}>
-                                                    {t.name}
-                                                </SelectItem>
-                                            ))}
-                                        </SelectContent>
-                                    </Select>
-                                ) : (
-                                    <div className="p-3 bg-neutral-50 dark:bg-neutral-950 rounded-xl text-xs text-neutral-500 dark:text-neutral-400 border border-neutral-100 dark:border-neutral-900 flex justify-between items-center">
-                                        <span>No custom tones defined. Standard tone will be used.</span>
-                                        <Link href={tonesIndex.url()} className="underline font-bold text-indigo-600 dark:text-indigo-400">
-                                            Create Tone
-                                        </Link>
-                                    </div>
-                                )}
-                                {errors.tone_id && <span className="text-xs text-rose-500 mt-1 block">{errors.tone_id}</span>}
-                            </div>
-
-                            <div>
-                                <div className="flex justify-between items-center mb-2">
-                                    <label htmlFor="user_prompt" className="block text-sm font-semibold text-neutral-700 dark:text-neutral-300">
-                                        What should we write about?
-                                    </label>
-                                    <span className="text-xs text-neutral-400">{data.user_prompt.length} / 2000</span>
-                                </div>
-                                <textarea
-                                    id="user_prompt"
-                                    rows={5}
-                                    placeholder="Describe your product, offer, target audience, or topic in detail. The more context you provide, the better the copy!"
-                                    value={data.user_prompt}
-                                    onChange={(e) => setData('user_prompt', e.target.value)}
-                                    className="w-full rounded-xl border border-neutral-200 dark:border-neutral-800 bg-white dark:bg-neutral-950 px-4 py-3 text-sm text-neutral-900 dark:text-neutral-100 focus:outline-none focus:ring-2 focus:ring-indigo-500 resize-none"
-                                    maxLength={2000}
-                                    required
-                                />
-                                {errors.user_prompt && <span className="text-xs text-rose-500 mt-1 block">{errors.user_prompt}</span>}
-                            </div>
-
-                            <Button type="submit" disabled={processing || creditBalance < 1} className="w-full h-12 rounded-xl text-sm font-bold bg-indigo-600 hover:bg-indigo-500 text-white flex items-center justify-center gap-2 shadow-sm shadow-indigo-600/10 cursor-pointer">
-                                <Sparkles className="size-4" />
-                                {processing ? 'Initializing Stream...' : 'Deduct 1 Credit & Write Copy'}
-                            </Button>
-                        </form>
+                {/* Detailed Recent History Grid */}
+                <div className="p-6 rounded-2xl border border-neutral-200 dark:border-neutral-800 bg-white dark:bg-neutral-900 shadow-xs flex flex-col">
+                    <div className="flex items-center justify-between border-b border-neutral-100 dark:border-neutral-800 pb-4 mb-4">
+                        <div className="flex items-center gap-2">
+                            <Clock className="size-5 text-indigo-650" />
+                            <h2 className="text-base font-bold text-neutral-900 dark:text-neutral-50">Recent Activity Logs</h2>
+                        </div>
+                        <Link href={historyIndex.url()} className="text-xs font-semibold text-indigo-600 dark:text-indigo-400 hover:underline">
+                            View All History →
+                        </Link>
                     </div>
 
-                    {/* Recent History Sidebar */}
-                    <div className="p-6 rounded-2xl border border-neutral-200 dark:border-neutral-800 bg-white dark:bg-neutral-900 shadow-sm flex flex-col h-full">
-                        <div className="flex items-center justify-between border-b border-neutral-100 dark:border-neutral-800 pb-4 mb-4">
-                            <div className="flex items-center gap-2">
-                                <History className="size-4 text-indigo-600" />
-                                <h2 className="text-sm font-bold text-neutral-900 dark:text-neutral-50">Recent History</h2>
-                            </div>
-                            <Link href={historyIndex.url()} className="text-xs font-semibold text-neutral-400 hover:text-neutral-600 hover:underline">
-                                View All
-                            </Link>
-                        </div>
-
-                        {recentGenerations.length > 0 ? (
-                            <div className="space-y-4 flex-1 overflow-y-auto max-h-[360px] pr-1">
-                                {recentGenerations.map((gen) => (
-                                    <Link
-                                        key={gen.id}
-                                        href={historyShow.url(gen.id)}
-                                        className="block p-3 rounded-xl border border-neutral-100 dark:border-neutral-800/60 hover:bg-neutral-50 dark:hover:bg-neutral-950 transition group"
-                                    >
-                                        <div className="flex items-center justify-between mb-1">
-                                            <span className="text-xs font-bold text-indigo-600 dark:text-indigo-400 capitalize">
+                    {recentGenerations.length > 0 ? (
+                        <div className="overflow-x-auto">
+                            <table className="w-full text-left border-collapse">
+                                <thead>
+                                    <tr className="border-b border-neutral-100 dark:border-neutral-800 text-[10px] uppercase font-bold text-neutral-400">
+                                        <th className="py-3 px-4">Content Type</th>
+                                        <th className="py-3 px-4">Prompt Prompt</th>
+                                        <th className="py-3 px-4">Language</th>
+                                        <th className="py-3 px-4">Writing Tone</th>
+                                        <th className="py-3 px-4">Date</th>
+                                        <th className="py-3 px-4">Status</th>
+                                        <th className="py-3 px-4 text-right">Action</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {recentGenerations.map((gen) => (
+                                        <tr key={gen.id} className="border-b border-neutral-100 dark:border-neutral-800/60 hover:bg-neutral-50/50 dark:hover:bg-neutral-950/20 text-sm transition">
+                                            <td className="py-3.5 px-4 font-bold text-neutral-900 dark:text-neutral-100 capitalize">
                                                 {gen.content_type.replace('_', ' ')}
-                                            </span>
-                                            <span className="text-[10px] text-neutral-400">
-                                                {new Date(gen.created_at).toLocaleDateString()}
-                                            </span>
-                                        </div>
-                                        <p className="text-xs text-neutral-600 dark:text-neutral-400 line-clamp-2 mb-2 group-hover:text-neutral-950 dark:group-hover:text-neutral-200 transition">
-                                            {gen.user_prompt}
-                                        </p>
-                                        <div className="flex items-center justify-between text-[10px] text-neutral-400">
-                                            <span className="flex items-center gap-1">
-                                                <Languages className="size-3" />
-                                                {gen.output_language.toUpperCase()}
-                                            </span>
-                                            {gen.tone && (
-                                                <span className="bg-neutral-100 dark:bg-neutral-800 px-2 py-0.5 rounded-full font-medium">
-                                                    {gen.tone.name}
+                                            </td>
+                                            <td className="py-3.5 px-4 text-xs text-neutral-500 dark:text-neutral-400 max-w-[280px] truncate">
+                                                {gen.user_prompt}
+                                            </td>
+                                            <td className="py-3.5 px-4 text-xs font-semibold uppercase text-neutral-750 dark:text-neutral-350">
+                                                {gen.output_language}
+                                            </td>
+                                            <td className="py-3.5 px-4 text-xs text-neutral-550 dark:text-neutral-400">
+                                                {gen.tone ? gen.tone.name : 'Standard Default'}
+                                            </td>
+                                            <td className="py-3.5 px-4 text-xs text-neutral-400">
+                                                {new Date(gen.created_at).toLocaleString()}
+                                            </td>
+                                            <td className="py-3.5 px-4">
+                                                <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider border ${
+                                                    gen.status === 'completed'
+                                                        ? 'bg-emerald-50 text-emerald-700 border-emerald-250 dark:bg-emerald-950/20 dark:text-emerald-400 dark:border-emerald-950/30'
+                                                        : gen.status === 'failed'
+                                                        ? 'bg-rose-50 text-rose-700 border-rose-250 dark:bg-rose-950/20 dark:text-rose-450 dark:border-rose-950/30'
+                                                        : 'bg-indigo-50 text-indigo-700 border-indigo-250 dark:bg-indigo-950/20 dark:text-indigo-400 dark:border-indigo-950/30 animate-pulse'
+                                                }`}>
+                                                    {gen.status}
                                                 </span>
-                                            )}
-                                        </div>
-                                    </Link>
-                                ))}
-                            </div>
-                        ) : (
-                            <div className="flex-1 flex flex-col items-center justify-center text-center p-8">
-                                <MessageSquare className="size-8 text-neutral-300 mb-2" />
-                                <h3 className="text-xs font-semibold text-neutral-900 dark:text-neutral-50">No copy generated yet</h3>
-                                <p className="text-[10px] text-neutral-400 max-w-[200px] mt-1">Your generated posts and scripts will appear here.</p>
-                            </div>
-                        )}
-                    </div>
+                                            </td>
+                                            <td className="py-3.5 px-4 text-right">
+                                                <Link
+                                                    href={historyShow.url(gen.id)}
+                                                    className="inline-flex items-center gap-1 text-xs font-bold text-indigo-600 dark:text-indigo-400 hover:text-indigo-500 dark:hover:text-indigo-350 group/btn"
+                                                >
+                                                    View Details
+                                                    <ArrowRight className="size-3.5 transition group-hover/btn:translate-x-0.5" />
+                                                </Link>
+                                            </td>
+                                        </tr>
+                                    ))}
+                                </tbody>
+                            </table>
+                        </div>
+                    ) : (
+                        <div className="text-center py-12 text-neutral-450 dark:text-neutral-500 text-sm">
+                            <Clock className="size-8 text-neutral-300 dark:text-neutral-700 mx-auto mb-2" />
+                            <span>No generations made yet. Click "Create New Copy" to get started!</span>
+                        </div>
+                    )}
                 </div>
 
             </div>
@@ -282,7 +234,7 @@ Dashboard.layout = {
     breadcrumbs: [
         {
             title: 'Dashboard',
-            href: dashboard(),
+            href: '/dashboard',
         },
     ],
 };

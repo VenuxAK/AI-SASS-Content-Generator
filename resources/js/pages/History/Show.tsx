@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { Head, Link, useForm, router } from '@inertiajs/react';
 import { ArrowLeft, Copy, Check, Edit3, Trash2, Languages, Sparkles, AlertCircle, RefreshCw } from 'lucide-react';
 import { index as historyIndex, update as historyUpdate, destroy as historyDestroy } from '@/routes/history';
@@ -33,17 +33,96 @@ interface ShowProps {
     autostream: boolean;
 }
 
+// Lightweight Markdown parser to safely render AI output structures
+function parseMarkdown(md: string) {
+    if (!md) return '';
+    
+    // Escape raw HTML tags to prevent XSS
+    let html = md
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;');
+
+    // Code blocks (```lang ... ```)
+    html = html.replace(/```([\s\S]*?)```/g, (match, code) => {
+        return `<pre class="bg-neutral-50 dark:bg-neutral-950 p-4 rounded-xl border border-neutral-100 dark:border-neutral-850/60 my-3 overflow-x-auto text-xs font-mono leading-relaxed text-neutral-900 dark:text-neutral-100">${code.trim()}</pre>`;
+    });
+
+    // Inline code (`code`)
+    html = html.replace(/`([^`]+)`/g, '<code class="bg-neutral-100 dark:bg-neutral-800 px-1.5 py-0.5 rounded text-indigo-600 dark:text-indigo-400 font-mono text-xs">$1</code>');
+
+    // Bold (**text** or __text__)
+    html = html.replace(/\*\*([^*]+)\*\*/g, '<strong class="font-bold text-neutral-950 dark:text-neutral-50">$1</strong>');
+    html = html.replace(/__([^_]+)__/g, '<strong class="font-bold text-neutral-950 dark:text-neutral-50">$1</strong>');
+
+    // Italic (*text* or _text_)
+    html = html.replace(/\*([^*]+)\*/g, '<em class="italic">$1</em>');
+    html = html.replace(/_([^_]+)_/g, '<em class="italic">$1</em>');
+
+    // Headers
+    html = html.replace(/^### (.*$)/gim, '<h4 class="text-sm font-bold text-neutral-950 dark:text-neutral-50 mt-3.5 mb-1.5 block">$1</h4>');
+    html = html.replace(/^## (.*$)/gim, '<h3 class="text-base font-extrabold text-neutral-950 dark:text-neutral-50 mt-4 mb-2 block">$1</h3>');
+    html = html.replace(/^# (.*$)/gim, '<h2 class="text-lg font-black text-neutral-950 dark:text-neutral-50 mt-5 mb-2.5 block">$1</h2>');
+
+    // Blockquotes (> text)
+    html = html.replace(/^\> (.*$)/gim, '<blockquote class="border-l-4 border-indigo-500 pl-4 py-1 my-3 text-neutral-500 italic bg-neutral-50/50 dark:bg-neutral-950/20 rounded-r-lg">$1</blockquote>');
+
+    // Lists
+    html = html.replace(/^\s*[\-\*]\s+(.*$)/gim, '<li class="list-disc ml-6 my-1.5 text-neutral-850 dark:text-neutral-100 text-sm">$1</li>');
+    html = html.replace(/^\s*\d+\.\s+(.*$)/gim, '<li class="list-decimal ml-6 my-1.5 text-neutral-850 dark:text-neutral-100 text-sm">$1</li>');
+
+    const lines = html.split('\n');
+    let insidePre = false;
+    
+    const processedLines = lines.map(line => {
+        const trimmed = line.trim();
+        if (trimmed === '') return insidePre ? '\n' : '<div class="h-2"></div>';
+        
+        if (trimmed.startsWith('<pre')) {
+            insidePre = true;
+            return line;
+        }
+        if (trimmed.includes('</pre>')) {
+            insidePre = false;
+            return line;
+        }
+        
+        if (insidePre) {
+            return line + '\n';
+        }
+        
+        if (trimmed.startsWith('<h') || trimmed.startsWith('<blockquote') || trimmed.startsWith('<li')) {
+            return line;
+        }
+        
+        return `<p class="mb-3 text-neutral-850 dark:text-neutral-100 leading-relaxed text-sm">${line}</p>`;
+    });
+    
+    return processedLines.join('');
+}
+
 export default function HistoryShow({ generation, autostream }: ShowProps) {
     const [status, setStatus] = useState<string>(generation.status);
     const [content, setContent] = useState<string>(generation.ai_content || '');
     const [error, setError] = useState<string | null>(null);
     const [isCopied, setIsCopied] = useState(false);
     const [isEditing, setIsEditing] = useState(false);
+    const [viewMode, setViewMode] = useState<'preview' | 'raw'>('preview');
 
     // Edit form
     const editForm = useForm({
         edited_content: generation.edited_content || generation.ai_content || '',
     });
+
+    const bottomRef = useRef<HTMLDivElement>(null);
+    const activeText = generation.edited_content || content;
+
+    // Smooth autoscroll during active generation
+    useEffect(() => {
+        if (status === 'streaming') {
+            bottomRef.current?.scrollIntoView({ behavior: 'auto', block: 'nearest' });
+        }
+    }, [activeText, status]);
 
     useEffect(() => {
         // SSE Streaming Hook
@@ -113,8 +192,6 @@ export default function HistoryShow({ generation, autostream }: ShowProps) {
             router.delete(historyDestroy.url({ generation: generation.id }));
         }
     };
-
-    const activeText = generation.edited_content || content;
 
     // Badges for status
     const statusBadge = {
@@ -228,15 +305,53 @@ export default function HistoryShow({ generation, autostream }: ShowProps) {
                             </Card>
                         )}
 
-                        <Card className="rounded-2xl border border-neutral-200 dark:border-neutral-800 bg-white dark:bg-neutral-900 shadow-sm overflow-hidden min-h-[300px] flex flex-col justify-between">
-                            <CardHeader className="bg-neutral-50/50 dark:bg-neutral-950/20 py-4 px-6 border-b border-neutral-100 dark:border-neutral-850/60 flex flex-row items-center justify-between">
-                                <CardTitle className="text-sm font-bold text-neutral-950 dark:text-neutral-50">
-                                    {isEditing ? 'Edit Content' : 'AI Output'}
-                                </CardTitle>
-                                {generation.edited_content && !isEditing && (
-                                    <Badge className="bg-amber-50 text-amber-700 dark:bg-amber-950/20 dark:text-amber-400 border border-amber-100 dark:border-amber-950/30">
-                                        Edited Version
+                        <Card className="relative rounded-2xl border border-neutral-200 dark:border-neutral-800 bg-white dark:bg-neutral-900 shadow-sm overflow-hidden min-h-[300px] flex flex-col justify-between">
+                            {(status === 'streaming' || status === 'pending') && (
+                                <div className="absolute top-0 left-0 right-0 h-[3px] bg-linier-to-r from-indigo-500 via-purple-500 to-indigo-500 bg-[length:200%_auto] animate-pulse" />
+                            )}
+                            <CardHeader className="bg-neutral-50/50 dark:bg-neutral-950/20 py-4 px-6 border-b border-neutral-100 dark:border-neutral-850/60 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                                <div className="flex items-center gap-4">
+                                    <CardTitle className="text-sm font-bold text-neutral-950 dark:text-neutral-50">
+                                        {isEditing ? 'Edit Content' : 'AI Output'}
+                                    </CardTitle>
+                                    {!isEditing && (
+                                        <div className="flex items-center bg-neutral-100 dark:bg-neutral-950 p-0.5 rounded-lg border border-neutral-200/40 dark:border-neutral-800/40 text-[11px] font-bold">
+                                            <button
+                                                type="button"
+                                                onClick={() => setViewMode('preview')}
+                                                className={`px-2.5 py-1 rounded-md transition-all cursor-pointer ${
+                                                    viewMode === 'preview'
+                                                        ? 'bg-white dark:bg-neutral-850 text-indigo-600 dark:text-indigo-400 shadow-xs'
+                                                        : 'text-neutral-500 hover:text-neutral-800 dark:hover:text-neutral-200'
+                                                }`}
+                                            >
+                                                Preview
+                                            </button>
+                                            <button
+                                                type="button"
+                                                onClick={() => setViewMode('raw')}
+                                                className={`px-2.5 py-1 rounded-md transition-all cursor-pointer ${
+                                                    viewMode === 'raw'
+                                                        ? 'bg-white dark:bg-neutral-850 text-indigo-600 dark:text-indigo-400 shadow-xs'
+                                                        : 'text-neutral-500 hover:text-neutral-800 dark:hover:text-neutral-200'
+                                                }`}
+                                            >
+                                                Raw MD
+                                            </button>
+                                        </div>
+                                    )}
+                                </div>
+                                {(status === 'streaming' || status === 'pending') ? (
+                                    <Badge className="bg-indigo-50 text-indigo-700 dark:bg-indigo-950/40 dark:text-indigo-300 border border-indigo-150 dark:border-indigo-900 animate-pulse flex items-center gap-1.5 font-bold self-start sm:self-auto">
+                                        <Sparkles className="size-3.5 animate-spin duration-3000" />
+                                        {status === 'pending' ? 'Connecting...' : 'AI is Writing...'}
                                     </Badge>
+                                ) : (
+                                    generation.edited_content && !isEditing && (
+                                        <Badge className="bg-amber-50 text-amber-700 dark:bg-amber-950/20 dark:text-amber-400 border border-amber-100 dark:border-amber-950/30 self-start sm:self-auto">
+                                            Edited Version
+                                        </Badge>
+                                    )
                                 )}
                             </CardHeader>
                             <CardContent className="p-6 flex-1">
@@ -268,13 +383,30 @@ export default function HistoryShow({ generation, autostream }: ShowProps) {
                                         </div>
                                     </form>
                                 ) : (
-                                    <div className="whitespace-pre-line text-sm text-neutral-800 dark:text-neutral-200 leading-relaxed font-sans min-h-[220px]">
-                                        {activeText || (
+                                    <div className="whitespace-pre-line text-sm text-neutral-850 dark:text-neutral-100 leading-relaxed font-sans min-h-[220px]">
+                                        {activeText ? (
+                                            viewMode === 'preview' ? (
+                                                <div 
+                                                    className="prose prose-neutral dark:prose-invert max-w-none text-neutral-850 dark:text-neutral-100 text-sm leading-relaxed"
+                                                    dangerouslySetInnerHTML={{ 
+                                                        __html: parseMarkdown(activeText) + (status === 'streaming' ? '<span class="inline-block w-1.5 h-4 ml-1 bg-indigo-600 dark:bg-indigo-400 animate-pulse align-middle rounded-sm"></span>' : '') 
+                                                    }}
+                                                />
+                                            ) : (
+                                                <>
+                                                    {activeText}
+                                                    {status === 'streaming' && (
+                                                        <span className="inline-block w-1.5 h-4 ml-1 bg-indigo-600 dark:bg-indigo-400 animate-pulse align-middle rounded-sm" />
+                                                    )}
+                                                </>
+                                            )
+                                        ) : (
                                             <div className="flex flex-col items-center justify-center py-12 text-neutral-400 animate-pulse">
                                                 <RefreshCw className="size-6 animate-spin text-indigo-600 mb-2" />
                                                 <span>Awaiting first word...</span>
                                             </div>
                                         )}
+                                        <div ref={bottomRef} className="h-2" />
                                     </div>
                                 )}
                             </CardContent>

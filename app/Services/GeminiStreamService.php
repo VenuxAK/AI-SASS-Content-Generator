@@ -67,7 +67,7 @@ class GeminiStreamService
                 $buffer = '';
                 $fullContent = '';
 
-                while (!$body->eof()) {
+                while (! $body->eof()) {
                     $read = $body->read(1024);
                     $buffer .= $read;
 
@@ -80,14 +80,21 @@ class GeminiStreamService
                             continue;
                         }
 
-                        if (str_starts_with($line, 'data: ')) {
-                            $dataJson = substr($line, 6);
+                        if (str_starts_with($line, 'data:')) {
+                            $dataJson = trim(substr($line, 5));
 
                             if ($dataJson === '[DONE]' || empty($dataJson)) {
                                 continue;
                             }
 
                             $data = json_decode($dataJson, true);
+
+                            // Check if API returned an error structure in stream
+                            if ($data && isset($data['error'])) {
+                                $errMsg = $data['error']['message'] ?? json_encode($data['error']);
+                                throw new \RuntimeException('OpenRouter API Error: '.$errMsg);
+                            }
+
                             if ($data && isset($data['choices'][0]['delta']['content'])) {
                                 $text = $data['choices'][0]['delta']['content'];
                                 $fullContent .= $text;
@@ -98,6 +105,7 @@ class GeminiStreamService
                 }
 
                 $onComplete($fullContent);
+
                 return;
             } catch (\Throwable $e) {
                 Log::error('OpenRouter SSE streaming failed: '.$e->getMessage(), [
@@ -157,8 +165,8 @@ class GeminiStreamService
                         continue;
                     }
 
-                    if (str_starts_with($line, 'data: ')) {
-                        $dataJson = substr($line, 6);
+                    if (str_starts_with($line, 'data:')) {
+                        $dataJson = trim(substr($line, 5));
 
                         // Stop if we receive the done token or empty JSON
                         if ($dataJson === '[DONE]' || empty($dataJson)) {
@@ -166,6 +174,13 @@ class GeminiStreamService
                         }
 
                         $data = json_decode($dataJson, true);
+
+                        // Check if API returned an error structure in stream
+                        if ($data && isset($data['error'])) {
+                            $errMsg = $data['error']['message'] ?? json_encode($data['error']);
+                            throw new \RuntimeException('Gemini API Error: '.$errMsg);
+                        }
+
                         if ($data && isset($data['candidates'][0]['content']['parts'][0]['text'])) {
                             $text = $data['candidates'][0]['content']['parts'][0]['text'];
                             $fullContent .= $text;
